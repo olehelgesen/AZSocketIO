@@ -491,10 +491,12 @@ NSString * const AZSocketIODefaultNamespace = @"";
 
 - (void)didFailWithError:(NSError *)error
 {
-    self.state = AZSocketIOStateDisconnected;
-    [self.queue setSuspended:YES];
-    if (![self reconnect] && self.errorBlock) {
-        self.errorBlock(error);
+    if(self.state != AZSocketIOStateDisconnected) {
+        self.state = AZSocketIOStateDisconnected;
+        [self.queue setSuspended:YES];
+        if (![self reconnect] && self.errorBlock) {
+            self.errorBlock(error);
+        }
     }
 }
 
