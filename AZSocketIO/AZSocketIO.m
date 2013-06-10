@@ -55,6 +55,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
 @property(nonatomic, assign)NSInteger disconnectInterval;
 
 @property(nonatomic, assign)NSTimeInterval currentReconnectDelay;
+@property(nonatomic, strong)NSTimer *reconnectTimer;
 
 @property(nonatomic, assign, readwrite)AZSocketIOState state;
 @end
@@ -197,7 +198,10 @@ NSString * const AZSocketIODefaultNamespace = @"";
                 connectionCallable.selector = @selector(connectWithSuccess:andFailure:);
                 [connectionCallable setArgument:&_connectionBlock atIndex:2];
                 [connectionCallable setArgument:&_errorBlock atIndex:3];
-                [NSTimer scheduledTimerWithTimeInterval:self.currentReconnectDelay invocation:connectionCallable repeats:NO];
+                if(self.reconnectTimer) {
+                    [self.reconnectTimer invalidate];
+                }
+                self.reconnectTimer = [NSTimer scheduledTimerWithTimeInterval:self.currentReconnectDelay invocation:connectionCallable repeats:NO];
                 
                 self.currentReconnectDelay *= 2;
                 return YES;
@@ -473,6 +477,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
 {
     self.state = AZSocketIOStateConnected;
     self.connectionAttempts = 0;
+    self.reconnectTimer = nil;
 }
 
 - (void)didClose
