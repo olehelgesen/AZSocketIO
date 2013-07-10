@@ -19,7 +19,7 @@
 //
 #import <Foundation/Foundation.h>
 #import "AZSocketIOTransport.h"
-#import "SRWebSocket.h"
+#import <SocketRocket/SRWebSocket.h>
 
 @interface AZWebsocketTransport : NSObject <AZSocketIOTransport, SRWebSocketDelegate>
 @property(nonatomic, strong)SRWebSocket *websocket;
