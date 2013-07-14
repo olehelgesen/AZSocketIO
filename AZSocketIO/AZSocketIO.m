@@ -100,6 +100,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
         
         self.reconnect = YES;
         self.reconnectionDelay = .5;
+        self.maxReconnectionDelay = MAXFLOAT;
         self.reconnectionLimit = MAXFLOAT;
         self.maxReconnectionAttempts = 10;
         self.state = AZSocketIOStateDisconnected;
@@ -203,7 +204,10 @@ NSString * const AZSocketIODefaultNamespace = @"";
                 }
                 self.reconnectTimer = [NSTimer scheduledTimerWithTimeInterval:self.currentReconnectDelay invocation:connectionCallable repeats:NO];
                 
-                self.currentReconnectDelay *= 2;
+                NSTimeInterval newReconnectDelay = self.currentReconnectDelay *2;
+                if(newReconnectDelay <= self.maxReconnectionDelay) {
+                    self.currentReconnectDelay = newReconnectDelay;
+                }
                 return YES;
             }
         }

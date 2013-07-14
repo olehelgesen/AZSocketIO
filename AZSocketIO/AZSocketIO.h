@@ -289,6 +289,10 @@ NS_ENUM(NSUInteger, AZSocketIOError) {
  */
 @property(nonatomic, assign)NSTimeInterval reconnectionDelay;
 /**
+ The max delay, in seconds, between reconnection attempts. Defaults to 'MAX_FLOAT'.
+ */
+@property(nonatomic, assign)NSTimeInterval maxReconnectionDelay;
+/**
  The maximum delay, in seconds, before reconnecting. After the delay hits this ceiling, reconnection attempts will stop. Defaults to 'MAX_FLOAT'.
  */
 @property(nonatomic, assign)NSTimeInterval reconnectionLimit;
