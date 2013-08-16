@@ -98,7 +98,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
         self.transports = [NSMutableSet setWithObjects:@"websocket", @"xhr-polling", nil];
         self.transportMap = @{ @"websocket" : [AZWebsocketTransport class], @"xhr-polling" : [AZxhrTransport class] };
         
-        self.reconnect = YES;
+        self.shouldReconnect = YES;
         self.reconnectionDelay = .5;
         self.maxReconnectionDelay = MAXFLOAT;
         self.reconnectionLimit = MAXFLOAT;
@@ -176,6 +176,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
 
 - (void)disconnect
 {
+    self.shouldReconnect = NO;
     [self clearHeartbeatTimeout];
     self.state = AZSocketIOStateDisconnecting;
     [self.transport disconnect];

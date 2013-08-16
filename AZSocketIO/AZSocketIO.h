@@ -283,7 +283,7 @@ NS_ENUM(NSUInteger, AZSocketIOError) {
 /**
  Determines whether AZSocketIO will try to reconnect. Defaults to 'YES'.
  */
-@property(nonatomic, assign, getter = shouldReconnect)BOOL reconnect;
+@property(nonatomic, assign) BOOL shouldReconnect;
 /**
  The initial delay, in seconds, before reconnecting. Defaults to '0.5'.
  */
