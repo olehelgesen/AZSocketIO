@@ -176,7 +176,6 @@ NSString * const AZSocketIODefaultNamespace = @"";
 
 - (void)disconnect
 {
-    self.shouldReconnect = NO;
     [self clearHeartbeatTimeout];
     self.state = AZSocketIOStateDisconnecting;
     [self.transport disconnect];
