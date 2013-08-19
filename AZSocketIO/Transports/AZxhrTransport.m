@@ -35,30 +35,31 @@
 @synthesize connected;
 - (void)connect
 {
+    __weak AZxhrTransport *weakSelf = self;
     [self.client getPath:@""
               parameters:nil
                  success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                     self.connected = YES;
-                     if ([self.delegate respondsToSelector:@selector(didOpen)]) {
-                         [self.delegate didOpen];
+                     weakSelf.connected = YES;
+                     if ([weakSelf.delegate respondsToSelector:@selector(didOpen)]) {
+                         [weakSelf.delegate didOpen];
                      }                     
-                     NSString *responseString = [self stringFromData:responseObject];
+                     NSString *responseString = [weakSelf stringFromData:responseObject];
                      NSArray *messages = [responseString componentsSeparatedByString:@"\ufffd"];
                      if ([messages count] > 0) {
                          for (NSString *message in messages) {
-                             [self.delegate didReceiveMessage:message];
+                             [weakSelf.delegate didReceiveMessage:message];
                          }
                      } else {
-                         [self.delegate didReceiveMessage:responseString];
+                         [weakSelf.delegate didReceiveMessage:responseString];
                      }                     
                      
-                     if (self.connected) {
-                         [self connect];
+                     if (weakSelf.connected) {
+                         [weakSelf connect];
                      }
                  } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                     [self.delegate didFailWithError:error];
-                     if ([self.delegate respondsToSelector:@selector(didClose)]) {
-                         [self.delegate didClose];
+                     [weakSelf.delegate didFailWithError:error];
+                     if ([weakSelf.delegate respondsToSelector:@selector(didClose)]) {
+                         [weakSelf.delegate didClose];
                      }
                  }];
 }
