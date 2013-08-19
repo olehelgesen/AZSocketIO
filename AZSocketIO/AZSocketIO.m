@@ -121,6 +121,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
     self.connectionBlock = success;
     self.errorBlock = failure;
     NSString *urlString = [NSString stringWithFormat:@"socket.io/%@", PROTOCOL_VERSION];
+    self.connectionAttempts++;
     [self.httpClient getPath:urlString
                   parameters:nil
                      success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -148,7 +149,6 @@ NSString * const AZSocketIODefaultNamespace = @"";
 
 - (void)connect
 {
-    self.connectionAttempts++;
     for (NSString *transportType in self.availableTransports) {
         if ([self.transports containsObject:transportType]) {
             [self connectViaTransport:transportType];
@@ -162,11 +162,16 @@ NSString * const AZSocketIODefaultNamespace = @"";
     self.errorBlock(error);
 }
 
-- (void)connectViaTransport:(NSString*)transportType 
+- (void)connectViaTransport:(NSString*)transportType
 {
     if ([transportType isEqualToString:@"websocket"]) {
         self.transport = [[AZWebsocketTransport alloc] initWithDelegate:self secureConnections:self.secureConnections];
     } else if ([transportType isEqualToString:@"xhr-polling"]) {
+        if(self.transport && [self.transport isKindOfClass:[AZxhrTransport class]]) {
+            DLog(@"Exisitng transport");
+            [self.transports removeObject:self.transport];
+            self.transport = nil;
+        }
         self.transport = [[AZxhrTransport alloc] initWithDelegate:self secureConnections:self.secureConnections];
     } else {
         NSLog(@"Transport not implemented");
@@ -212,7 +217,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
             }
         }
     }
-
+    
     return NO;
 }
 
@@ -256,7 +261,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
 }
 
 - (BOOL)send:(id)data error:(NSError *__autoreleasing *)error
-{        
+{
     return [self send:data error:error ack:NULL];
 }
 
@@ -387,7 +392,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
     [self clearHeartbeatTimeout];
     self.heartbeatTimer = [NSTimer scheduledTimerWithTimeInterval:self.heartbeatInterval
                                                            target:self
-                                                         selector:@selector(heartbeatTimeout) 
+                                                         selector:@selector(heartbeatTimeout)
                                                          userInfo:nil
                                                           repeats:NO];
 }
