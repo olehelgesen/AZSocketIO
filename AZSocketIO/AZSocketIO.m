@@ -122,6 +122,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
     self.errorBlock = failure;
     NSString *urlString = [NSString stringWithFormat:@"socket.io/%@", PROTOCOL_VERSION];
     self.connectionAttempts++;
+    __weak AZSocketIO *weakSelf = self;
     [self.httpClient getPath:urlString
                   parameters:nil
                      success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -133,15 +134,15 @@ NSString * const AZSocketIODefaultNamespace = @"";
                              failure([NSError errorWithDomain:AZDOMAIN code:AZSocketIOErrorConnection userInfo:errorDetail]);
                              return;
                          }
-                         self.sessionId = [msg objectAtIndex:0];
-                         self.heartbeatInterval = [[msg objectAtIndex:1] intValue];
-                         self.disconnectInterval = [[msg objectAtIndex:2] intValue];
-                         self.availableTransports = [[msg objectAtIndex:3] componentsSeparatedByString:@","];
-                         self.currentReconnectDelay = self.reconnectionDelay;
-                         [self connect];
+                         weakSelf.sessionId = [msg objectAtIndex:0];
+                         weakSelf.heartbeatInterval = [[msg objectAtIndex:1] intValue];
+                         weakSelf.disconnectInterval = [[msg objectAtIndex:2] intValue];
+                         weakSelf.availableTransports = [[msg objectAtIndex:3] componentsSeparatedByString:@","];
+                         weakSelf.currentReconnectDelay = weakSelf.reconnectionDelay;
+                         [weakSelf connect];
                      } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                         self.state = AZSocketIOStateDisconnected;
-                         if (![self reconnect]) {
+                         weakSelf.state = AZSocketIOStateDisconnected;
+                         if (![weakSelf reconnect]) {
                              failure(error);
                          }
                      }];
