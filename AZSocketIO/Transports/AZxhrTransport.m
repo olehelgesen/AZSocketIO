@@ -23,6 +23,8 @@
 #import "AFHTTPRequestOperation.h"
 #import "AZSocketIOTransportDelegate.h"
 
+#define HTTP_TIMEOUT 20
+
 @interface AZxhrTransport ()
 @property(nonatomic, weak)id<AZSocketIOTransportDelegate> delegate;
 @property(nonatomic, readwrite, assign)BOOL connected;
@@ -36,39 +38,42 @@
 - (void)connect
 {
     __weak AZxhrTransport *weakSelf = self;
-    [self.client getPath:@""
-              parameters:nil
-                 success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                     weakSelf.connected = YES;
-                     if ([weakSelf.delegate respondsToSelector:@selector(didOpen)]) {
-                         [weakSelf.delegate didOpen];
-                     }                     
-                     NSString *responseString = [weakSelf stringFromData:responseObject];
-                     NSArray *messages = [responseString componentsSeparatedByString:@"\ufffd"];
-                     if ([messages count] > 0) {
-                         for (NSString *message in messages) {
-                             [weakSelf.delegate didReceiveMessage:message];
-                         }
-                     } else {
-                         [weakSelf.delegate didReceiveMessage:responseString];
-                     }                     
-                     
-                     if (weakSelf.connected) {
-                         [weakSelf connect];
-                     }
-                 } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                     [weakSelf.delegate didFailWithError:error];
-                     if ([weakSelf.delegate respondsToSelector:@selector(didClose)]) {
-                         [weakSelf.delegate didClose];
-                     }
-                 }];
+    
+    NSMutableURLRequest *request = [client requestWithMethod:@"GET" path:@"" parameters:nil];
+    request.timeoutInterval = HTTP_TIMEOUT;
+    AFHTTPRequestOperation *operation = [client HTTPRequestOperationWithRequest:request
+                                                                        success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                                                                            weakSelf.connected = YES;
+                                                                            if ([weakSelf.delegate respondsToSelector:@selector(didOpen)]) {
+                                                                                [weakSelf.delegate didOpen];
+                                                                            }
+                                                                            NSString *responseString = [weakSelf stringFromData:responseObject];
+                                                                            NSArray *messages = [responseString componentsSeparatedByString:@"\ufffd"];
+                                                                            if ([messages count] > 0) {
+                                                                                for (NSString *message in messages) {
+                                                                                    [weakSelf.delegate didReceiveMessage:message];
+                                                                                }
+                                                                            } else {
+                                                                                [weakSelf.delegate didReceiveMessage:responseString];
+                                                                            }
+                                                                            
+                                                                            if (weakSelf.connected) {
+                                                                                [weakSelf connect];
+                                                                            }
+                                                                        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                                                                            [weakSelf.delegate didFailWithError:error];
+                                                                            if ([weakSelf.delegate respondsToSelector:@selector(didClose)]) {
+                                                                                [weakSelf.delegate didClose];
+                                                                            }
+                                                                        }];
+    [client enqueueHTTPRequestOperation:operation];
 }
 - (void)disconnect
 {
     [self.client.operationQueue cancelAllOperations];
     [self.client getPath:@"?disconnect"
               parameters:nil
-                 success:^(AFHTTPRequestOperation *operation, id responseObject) {} 
+                 success:^(AFHTTPRequestOperation *operation, id responseObject) {}
                  failure:^(AFHTTPRequestOperation *operation, NSError *error) {}];
     self.connected = NO;
     if ([self.delegate respondsToSelector:@selector(didClose)]) {
@@ -82,6 +87,8 @@
     [request setHTTPBody:[msg dataUsingEncoding:NSUTF8StringEncoding]];
     [request setValue:@"text/plain; charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
     [request setValue:@"Keep-Alive" forHTTPHeaderField:@"Connection"];
+    
+    request.timeoutInterval = HTTP_TIMEOUT;
     
     AFHTTPRequestOperation *op = [[AFHTTPRequestOperation alloc] initWithRequest:request];
     [op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -108,6 +115,7 @@
         
         self.client = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:urlString]];
         self.client.stringEncoding = NSUTF8StringEncoding;
+        
     }
     return self;
 }
