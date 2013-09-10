@@ -88,6 +88,8 @@ NSString * const AZSocketIODefaultNamespace = @"";
                                self.host, self.port];
         
         self.httpClient = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:urlString]];
+        [self.httpClient setDefaultHeader:@"Cache-control" value:@"no-cache"];
+        [self.httpClient setDefaultHeader:@"Pragma" value:@"no-cache"];
         self.ackCallbacks = [NSMutableDictionary dictionary];
         self.ackCount = 0;
         self.specificEventBlocks = [NSMutableDictionary new];
@@ -120,7 +122,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
     self.state = AZSocketIOStateConnecting;
     self.connectionBlock = success;
     self.errorBlock = failure;
-    NSString *urlString = [NSString stringWithFormat:@"socket.io/%@", PROTOCOL_VERSION];
+    NSString *urlString = [NSString stringWithFormat:@"socket.io/%@?t=%lld", PROTOCOL_VERSION, (long long)[[NSDate new] timeIntervalSince1970] * 1000];
     self.connectionAttempts++;
     __weak AZSocketIO *weakSelf = self;
     [self.httpClient getPath:urlString

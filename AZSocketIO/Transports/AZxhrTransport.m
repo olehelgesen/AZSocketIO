@@ -39,7 +39,7 @@
 {
     __weak AZxhrTransport *weakSelf = self;
     
-    NSMutableURLRequest *request = [client requestWithMethod:@"GET" path:@"" parameters:nil];
+    NSMutableURLRequest *request = [client requestWithMethod:@"GET" path:[NSString stringWithFormat:@"?t=%lld", (long long)[[NSDate new] timeIntervalSince1970] * 1000] parameters:nil];
     request.timeoutInterval = HTTP_TIMEOUT;
     AFHTTPRequestOperation *operation = [client HTTPRequestOperationWithRequest:request
                                                                         success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -114,6 +114,8 @@
                                [self.delegate sessionId]];
         
         self.client = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:urlString]];
+        [self.client setDefaultHeader:@"Cache-control" value:@"no-cache"];
+        [self.client setDefaultHeader:@"Pragma" value:@"no-cache"];
         self.client.stringEncoding = NSUTF8StringEncoding;
         
     }
