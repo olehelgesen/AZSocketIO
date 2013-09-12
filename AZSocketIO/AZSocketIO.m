@@ -34,6 +34,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
 @property(nonatomic, strong, readwrite)NSString *port;
 @property(nonatomic, assign, readwrite)BOOL secureConnections;
 @property(nonatomic, copy, readwrite)NSString *endpoint;
+@property(nonatomic, strong, readwrite)NSDictionary *parameters;
 
 @property(nonatomic, strong)NSOperationQueue *queue;
 
@@ -82,6 +83,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
         self.port = port;
         self.secureConnections = secureConnections;
         self.endpoint = endpoint;
+		self.parameters = nil;
         
         NSString *protocolString = self.secureConnections ? @"https://" : @"http://";
         NSString *urlString = [NSString stringWithFormat:@"%@%@:%@", protocolString,
@@ -110,6 +112,18 @@ NSString * const AZSocketIODefaultNamespace = @"";
     return self;
 }
 
+- (id)initWithHost:(NSString *)host andPort:(NSString *)port secure:(BOOL)secureConnections withNamespace:(NSString *)endpoint andParameters:(NSDictionary *)parameters;
+{
+	NSParameterAssert(parameters);
+	
+	self = [self initWithHost:host andPort:port secure:secureConnections withNamespace:endpoint];
+	if (self) {
+		self.parameters = parameters;
+	}
+	
+	return self;
+}
+
 - (void)setReconnectionDelay:(NSTimeInterval)reconnectionDelay
 {
     _reconnectionDelay = reconnectionDelay;
@@ -126,7 +140,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
     self.connectionAttempts++;
     __weak AZSocketIO *weakSelf = self;
     [self.httpClient getPath:urlString
-                  parameters:nil
+                  parameters:self.parameters
                      success:^(AFHTTPRequestOperation *operation, id responseObject) {
                          NSString *response = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
                          NSArray *msg = [response componentsSeparatedByString:@":"];
@@ -171,7 +185,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
         self.transport = [[AZWebsocketTransport alloc] initWithDelegate:self secureConnections:self.secureConnections];
     } else if ([transportType isEqualToString:@"xhr-polling"]) {
         if(self.transport && [self.transport isKindOfClass:[AZxhrTransport class]]) {
-            DLog(@"Exisitng transport");
+            NSLog(@"Existing transport");
             [self.transports removeObject:self.transport];
             self.transport = nil;
         }

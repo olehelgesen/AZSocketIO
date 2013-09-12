@@ -130,6 +130,22 @@ NS_ENUM(NSUInteger, AZSocketIOError) {
  @return the initialized client
  */
 - (id)initWithHost:(NSString *)host andPort:(NSString *)port secure:(BOOL)secureConnections withNamespace:(NSString *)endpoint;
+
+/**
+ Initializes an `AZSocketIO` object with the specified host, port, namespace, and parameters.
+ 
+ This is the designated initializer. It will not create a connection to the server.
+ 
+ @param host The hostname of socket.io server.
+ @param port The port the socket.io server is running on.
+ @param secureConnections Determines whether SSL encryption is used when possible
+ @param endpoint The endpoint namespace
+ @param parameters Query parameters to use when connecting
+ 
+ @return the initialized client
+ */
+- (id)initWithHost:(NSString *)host andPort:(NSString *)port secure:(BOOL)secureConnections withNamespace:(NSString *)endpoint andParameters:(NSDictionary *)parameters;
+
 /**
  Connects to the socket.io server.
  
