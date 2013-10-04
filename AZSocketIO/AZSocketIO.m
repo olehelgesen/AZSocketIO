@@ -136,7 +136,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
     self.state = AZSocketIOStateConnecting;
     self.connectionBlock = success;
     self.errorBlock = failure;
-    NSString *urlString = [NSString stringWithFormat:@"socket.io/%@?t=%lld", PROTOCOL_VERSION, (long long)[[NSDate new] timeIntervalSince1970] * 1000];
+    NSString *urlString = [NSString stringWithFormat:@"socket.io/%@/?t=%lld", PROTOCOL_VERSION, (long long)[[NSDate new] timeIntervalSince1970] * 1000];
     self.connectionAttempts++;
     __weak AZSocketIO *weakSelf = self;
     [self.httpClient getPath:urlString
