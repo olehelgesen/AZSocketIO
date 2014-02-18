@@ -85,6 +85,10 @@ NS_ENUM(NSUInteger, AZSocketIOError) {
  The currently active transport, if one exists.
  */
 @property(nonatomic, strong)id<AZSocketIOTransport> transport;
+/**
+ The max time, in seconds, a packet can spend in the queue and still be sent. Defaults to 'MAX_FLOAT'.
+ */
+@property(nonatomic, assign)NSTimeInterval maxQueuedPacketAge;
 
 /**
  This block will be called on the reception of any non-protocol message.

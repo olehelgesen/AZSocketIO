@@ -108,6 +108,7 @@ NSString * const AZSocketIODefaultNamespace = @"";
         self.reconnectionLimit = MAXFLOAT;
         self.maxReconnectionAttempts = 10;
         self.state = AZSocketIOStateDisconnected;
+        self.maxQueuedPacketAge = MAXFLOAT;
     }
     return self;
 }
@@ -347,9 +348,17 @@ NSString * const AZSocketIODefaultNamespace = @"";
 - (BOOL)sendPacket:(AZSocketIOPacket *)packet error:(NSError * __autoreleasing *)error
 {
     packet.endpoint = self.endpoint;
-    [self.queue addOperation:[NSBlockOperation blockOperationWithBlock:^{
-        [self.transport send:[packet encode]];
-    }]];
+    
+    NSDate *addedToQueueTime = [NSDate date];
+    NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
+        if([addedToQueueTime timeIntervalSinceNow] < -self.maxQueuedPacketAge) {
+            [self.ackCallbacks removeObjectForKey:packet.Id];
+        }
+        else {
+            [self.transport send:[packet encode]];
+        }
+    }];
+    [self.queue addOperation:operation];
     return !self.queue.isSuspended;
 }
 
