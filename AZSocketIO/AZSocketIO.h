@@ -19,7 +19,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "AZsocketIOTransportDelegate.h"
+#import "AZSocketIOTransportDelegate.h"
 
 @protocol AZSocketIOTransport;
 
@@ -36,7 +36,7 @@ typedef void (^ErrorBlock)(NSError *error);
 typedef void (^ACKCallback)();
 typedef void (^ACKCallbackWithArgs)(NSArray *args);
 
-/** 
+/**
  The socket state according to socket.io specs ( https://github.com/LearnBoost/socket.io-spec#anatomy-of-a-socketio-socket )
  */
 typedef enum {
@@ -134,22 +134,6 @@ NS_ENUM(NSUInteger, AZSocketIOError) {
  @return the initialized client
  */
 - (id)initWithHost:(NSString *)host andPort:(NSString *)port secure:(BOOL)secureConnections withNamespace:(NSString *)endpoint;
-
-/**
- Initializes an `AZSocketIO` object with the specified host, port, namespace, and parameters.
- 
- This is the designated initializer. It will not create a connection to the server.
- 
- @param host The hostname of socket.io server.
- @param port The port the socket.io server is running on.
- @param secureConnections Determines whether SSL encryption is used when possible
- @param endpoint The endpoint namespace
- @param parameters Query parameters to use when connecting
- 
- @return the initialized client
- */
-- (id)initWithHost:(NSString *)host andPort:(NSString *)port secure:(BOOL)secureConnections withNamespace:(NSString *)endpoint andParameters:(NSDictionary *)parameters;
-
 /**
  Connects to the socket.io server.
  
@@ -157,6 +141,16 @@ NS_ENUM(NSUInteger, AZSocketIOError) {
  @param failure A block object that will be executed when an error is reported by the socket.io server or the connection becomes unusable.
  */
 - (void)connectWithSuccess:(void (^)())success andFailure:(void (^)(NSError *error))failure;
+
+/**
+ Connects to the socket.io server.
+ 
+ @param success A block object that will be executed after the completion of handshake.
+ @param failure A block object that will be executed when an error is reported by the socket.io server or the connection becomes unusable.
+ @param data A dictionary with additional data for the handshake
+ */
+- (void)connectWithSuccess:(ConnectedBlock)success andFailure:(ErrorBlock)failure withData:(NSDictionary*)data;
+
 /**
  Disconnects from the socket.io server
  */
@@ -303,15 +297,11 @@ NS_ENUM(NSUInteger, AZSocketIOError) {
 /**
  Determines whether AZSocketIO will try to reconnect. Defaults to 'YES'.
  */
-@property(nonatomic, assign) BOOL shouldReconnect;
+@property(nonatomic, assign, getter = shouldReconnect)BOOL reconnect;
 /**
  The initial delay, in seconds, before reconnecting. Defaults to '0.5'.
  */
 @property(nonatomic, assign)NSTimeInterval reconnectionDelay;
-/**
- The max delay, in seconds, between reconnection attempts. Defaults to 'MAX_FLOAT'.
- */
-@property(nonatomic, assign)NSTimeInterval maxReconnectionDelay;
 /**
  The maximum delay, in seconds, before reconnecting. After the delay hits this ceiling, reconnection attempts will stop. Defaults to 'MAX_FLOAT'.
  */
